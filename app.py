@@ -69,7 +69,14 @@ def profile(payload):
 # Users route - get all users
 @app.route("/users",methods=["GET"])
 def users():
-    pass
+    conn=get_db_connection()
+    users=conn.execute("SELECT username,email FROM users").fetchall()
+    if not users:
+        conn.close()
+        return jsonify({"error":"no user found"}),404
+    users_list=[{"username":user["username"],"email":user["email"]} for user in users]
+    conn.close()
+    return jsonify(users_list)
 # Entry point
 if __name__=="__main__":
     init_db()
