@@ -1,10 +1,10 @@
-from flask import Flask,jsonify,request
-from werkzeug.security import generate_password_hash,check_password_hash
-from models import init_db,get_db_connection
+from flask import Flask, jsonify, request
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import init_db, get_db_connection
 from config import SECRET_KEY
 from auth import token_required
 import jwt
-from datetime import datetime,timedelta
+from datetime import datetime, timezone, timedelta
 # app initialize
 app=Flask(__name__)
 # Routes
@@ -31,7 +31,29 @@ def signup():
 # Login route
 @app.route("/login",methods=["POST"])
 def login():
-    pass
+    data=request.get_json()
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error":"username and password are required"}),400
+    conn=get_db_connection()
+    user=conn.execute("SELECT * FROM users WHERE username=?",(data["username"],)).fetchone()
+    if user is None:
+        conn.close()
+        return jsonify({"message":"user not found"}),404
+    password=check_password_hash(user["password_hash"], data["password"])
+    if password is False:
+        conn.close()
+        return jsonify({"message":"invalid credentials"}),401
+# payload is user's info
+    payload={
+        "user_id":user["id"],
+        "username":user["username"],
+        "exp":datetime.now(timezone.utc) + timedelta(hours=1)
+    }
+# token generation
+    token=jwt.encode(payload,SECRET_KEY,algorithm=["HS256"])
+    conn.close()
+# return response
+    return jsonify({"token":token}),200
 # Profile route
 @app.route("/profile",methods=["GET"])
 @token_required
