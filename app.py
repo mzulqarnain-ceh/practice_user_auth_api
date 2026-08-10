@@ -58,7 +58,14 @@ def login():
 @app.route("/profile",methods=["GET"])
 @token_required
 def profile(payload):
-    pass
+    user_id=payload["user_id"]
+    conn=get_db_connection()
+    response=conn.execute("SELECT username, email FROM users WHERE id=?",(user_id,)).fetchone()
+    if response is None:
+        conn.close()
+        return jsonify({"error":"user not found"}),404
+    conn.close()
+    return jsonify({"username":response["username"], "email":response["email"]})
 # Users route - get all users
 @app.route("/users",methods=["GET"])
 def users():
