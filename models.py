@@ -3,6 +3,18 @@ folder=os.path.dirname(__file__)
 path=os.path.join(folder,"database.db")
 # database initialization and created table
 def init_db():
-    pass
+    conn=sqlite3.connect(path)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTO INCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    conn.close()
 def get_db_connection():
-    pass
+    conn=sqlite3.connect(path)
+    conn.row_factory=sqlite3.Row
+    return conn
