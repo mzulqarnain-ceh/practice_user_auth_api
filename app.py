@@ -50,7 +50,7 @@ def login():
         "exp":datetime.now(timezone.utc) + timedelta(hours=1)
     }
 # token generation
-    token=jwt.encode(payload,SECRET_KEY,algorithm=["HS256"])
+    token=jwt.encode(payload,SECRET_KEY,algorithm="HS256")
     conn.close()
 # return response
     return jsonify({"token":token}),200
